@@ -27,5 +27,8 @@ sqlc:
 test:
 	go test -v -cover ./...
 
+server:
+	go run main.go
+
 # 伪目标声明 (防止和同名文件冲突)
-.PHONY: postgres createdb dropdb migrateup migratedown sqlc test
+.PHONY: postgres createdb dropdb migrateup migratedown sqlc test server
