@@ -30,5 +30,8 @@ test:
 server:
 	go run main.go
 
+mockgen:
+	mockgen -package mockdb -destination ./db/mock/store.go ./db/sqlc Store
+
 # 伪目标声明 (防止和同名文件冲突)
 .PHONY: postgres createdb dropdb migrateup migratedown sqlc test server
