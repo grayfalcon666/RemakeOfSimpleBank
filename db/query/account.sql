@@ -12,7 +12,7 @@ RETURNING *;
 SELECT * FROM accounts
 WHERE id = $1 LIMIT 1;
 
--- name: ListAccouts :many
+-- name: ListAccounts :many
 SELECT * FROM accounts
 WHERE owner = $1
 ORDER BY id
