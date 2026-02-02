@@ -9,28 +9,25 @@ import (
 	"simplebank/token"
 
 	"github.com/gin-gonic/gin"
+	"github.com/lib/pq"
 )
 
 type createTransferRequest struct {
 	FromAccountID int64  `json:"from_account_ID" binding:"required,min=1"`
-	ToAccountID   int64  `json:"to_account_ID" bingding:"required,min=1"`
-	Amount        int64  `json:"amount" bingding:"required,gt=0"`
-	Currency      string `json:"currency" bingding:"required,currency"`
+	ToAccountID   int64  `json:"to_account_ID" binding:"required,min=1"`
+	Amount        int64  `json:"amount" binding:"required,gt=0"`
+	Currency      string `json:"currency" binding:"required,currency"`
 }
 
 func (server *Server) createTransfer(ctx *gin.Context) {
 	var req createTransferRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
 	}
 
 	fromAccount, valid := server.validAccount(ctx, req.FromAccountID, req.Currency)
 
-	if !valid {
-		return
-	}
-
-	_, valid = server.validAccount(ctx, req.ToAccountID, req.Currency)
 	if !valid {
 		return
 	}
@@ -42,6 +39,16 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 		return
 	}
 
+	_, valid = server.validAccount(ctx, req.ToAccountID, req.Currency)
+	if !valid {
+		return
+	}
+
+	if fromAccount.Balance < req.Amount {
+		ctx.JSON(http.StatusBadRequest, errorResponse(errors.New("insufficient balance")))
+		return
+	}
+
 	arg := db.TransferTxParams{
 		FromAccountID: req.FromAccountID,
 		ToAccountID:   req.ToAccountID,
@@ -49,8 +56,14 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 	}
 
 	result, err := server.store.TransferTX(ctx, arg)
-
 	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok {
+			switch pqErr.Code.Name() {
+			case "check_violation":
+				ctx.JSON(http.StatusBadRequest, errorResponse(errors.New("insufficient balance")))
+				return
+			}
+		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
