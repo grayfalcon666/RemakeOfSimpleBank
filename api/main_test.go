@@ -32,8 +32,10 @@ func setupAuth(
 	username string,
 	duration time.Duration,
 ) {
-	token, err := tokenMaker.CreateToken(username, duration)
+	token, payload, err := tokenMaker.CreateToken(username, duration)
 	require.NoError(t, err)
+	require.NotEmpty(t, token)
+	require.NotEmpty(t, payload)
 
 	// 构造 Header 值
 	authorizationHeader := fmt.Sprintf("%s %s", authorizationType, token)
