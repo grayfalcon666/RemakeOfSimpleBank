@@ -38,8 +38,14 @@ server:
 mockgen:
 	mockgen -package mockdb -destination ./db/mock/store.go ./db/sqlc Store
 
+proto:
+	rm -f pb/*.go
+	protoc --proto_path=proto --go_out=pb --go_opt=paths=source_relative \
+	--go-grpc_out=pb --go-grpc_opt=paths=source_relative \
+	proto/*.proto
+
 # 伪目标声明 (防止和同名文件冲突)
-.PHONY: postgres createdb dropdb migrateup migratedown sqlc test server
+.PHONY: postgres createdb dropdb migrateup migratedown sqlc test server mockgen proto
 
 # 处理Makefile传参的兼容逻辑（比如make migrateup 2时，忽略多余参数）
 %:

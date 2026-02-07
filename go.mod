@@ -1,6 +1,6 @@
 module simplebank
 
-go 1.23.0
+go 1.24.0
 
 toolchain go1.24.12
 
@@ -15,7 +15,9 @@ require (
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
 	go.uber.org/mock v0.5.0
-	golang.org/x/crypto v0.40.0
+	golang.org/x/crypto v0.44.0
+	google.golang.org/grpc v1.78.0
+	google.golang.org/protobuf v1.36.10
 )
 
 require (
@@ -54,12 +56,12 @@ require (
 	github.com/ugorji/go/codec v1.3.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/arch v0.20.0 // indirect
-	golang.org/x/mod v0.26.0 // indirect
-	golang.org/x/net v0.42.0 // indirect
-	golang.org/x/sync v0.16.0 // indirect
-	golang.org/x/sys v0.35.0 // indirect
-	golang.org/x/text v0.28.0 // indirect
-	golang.org/x/tools v0.35.0 // indirect
-	google.golang.org/protobuf v1.36.9 // indirect
+	golang.org/x/mod v0.29.0 // indirect
+	golang.org/x/net v0.47.0 // indirect
+	golang.org/x/sync v0.18.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
+	golang.org/x/text v0.31.0 // indirect
+	golang.org/x/tools v0.38.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20251029180050-ab9386a59fda // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
