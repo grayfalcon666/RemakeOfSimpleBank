@@ -6,7 +6,9 @@ import (
 	"simplebank/pb"
 	"simplebank/util"
 	worker "simplebank/worker"
+	"time"
 
+	"github.com/hibiken/asynq"
 	"github.com/lib/pq"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -36,7 +38,15 @@ func (server *Server) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 	}
 
 	payload := &worker.PayloadSendVerifyEmail{Username: user.Username}
-	server.taskDistributor.DistributeTaskSendVerifyEmail(ctx, payload)
+	opts := []asynq.Option{
+		asynq.MaxRetry(10),
+		asynq.ProcessIn(10 * time.Second),
+		asynq.Queue("critical"),
+	}
+	err = server.taskDistributor.DistributeTaskSendVerifyEmail(ctx, payload, opts...)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to distribute task to send verify email")
+	}
 
 	rsp := &pb.CreateUserResponse{
 		User: convertUser(user),
