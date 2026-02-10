@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io/fs"
 	"log"
+	"log/slog"
 	"net"
 	"net/http"
 	"os"
@@ -40,6 +41,14 @@ func main() {
 	if err != nil {
 		log.Fatal("cannot load config:", err)
 	}
+
+	var handler slog.Handler
+	if config.Environment == "production" {
+		handler = slog.NewJSONHandler(os.Stdout, nil)
+	} else {
+		handler = slog.NewTextHandler(os.Stdout, nil)
+	}
+	slog.SetDefault(slog.New(handler))
 
 	conn, err := sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
@@ -114,8 +123,10 @@ func runGatewayServer(
 		log.Fatal("cannot create listener:", err)
 	}
 
+	handler := gapi.HttpLogger(mux)
+
 	httpServer := &http.Server{
-		Handler: mux,
+		Handler: handler,
 	}
 
 	waitGroup.Go(func() error {
@@ -168,7 +179,8 @@ func runGrpcServer(
 		log.Fatal("cannot create server:", err)
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcLogger := grpc.UnaryInterceptor(gapi.GrpcLogger)
+	grpcServer := grpc.NewServer(grpcLogger)
 
 	pb.RegisterSimpleBankServer(grpcServer, server)
 
