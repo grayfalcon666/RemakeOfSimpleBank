@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 
 	"github.com/hibiken/asynq"
 )
@@ -26,11 +27,20 @@ func (distributor *RedisTaskDistributor) DistributeTaskSendVerifyEmail(
 
 	task := asynq.NewTask(TaskSendVerifyEmail, jsonPayload, opts...)
 	info, err := distributor.client.EnqueueContext(ctx, task)
+
+	logger := slog.With(
+		slog.String("task_id", info.ID),
+		slog.String("queue", info.Queue),
+		slog.String("type", task.Type()),
+		slog.String("payload", string(task.Payload())),
+	)
+
 	if err != nil {
+		logger.Error("failed to enqueue task", slog.String("error", err.Error()))
 		return fmt.Errorf("failed to enqueue task: %w", err)
 	}
 
-	fmt.Printf("enqueued task: id=%s, queue=%s\n", info.ID, info.Queue)
-	fmt.Printf("type [%s] payload [%v] enqueued\n", task.Type(), string(task.Payload()))
+	logger.Info("enqueued a task")
+
 	return nil
 }

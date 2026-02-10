@@ -2,6 +2,7 @@ package worker
 
 import (
 	"context"
+	"log/slog"
 	db "simplebank/db/sqlc"
 
 	"github.com/hibiken/asynq"
@@ -19,12 +20,22 @@ type RedisTaskProcessor struct {
 }
 
 func NewRedisTaskProcessor(redisOpt asynq.RedisClientOpt, store db.Store) TaskProcessor {
-	server := asynq.NewServer(redisOpt, asynq.Config{
-		Queues: map[string]int{
-			"critical": 10,
-			"default":  5,
-		},
-	})
+	server := asynq.NewServer(redisOpt,
+		asynq.Config{
+			Queues: map[string]int{
+				"critical": 10,
+				"default":  5,
+			},
+			ErrorHandler: asynq.ErrorHandlerFunc(func(ctx context.Context, task *asynq.Task, err error) {
+				slog.ErrorContext(
+					ctx,
+					"process task failed",
+					"type", task.Type(),
+					"payload", task.Payload(),
+				)
+			}),
+			Logger: NewLogger(),
+		})
 
 	return &RedisTaskProcessor{
 		server: server,

@@ -48,7 +48,14 @@ func main() {
 	} else {
 		handler = slog.NewTextHandler(os.Stdout, nil)
 	}
+	logger := slog.New(handler)
 	slog.SetDefault(slog.New(handler))
+
+	//把标准库的log统一重定向到slog
+	// 这样 redis 包里调用的 log.Printf 就会自动变成 slog 的 JSON 输出
+	l := slog.NewLogLogger(logger.Handler(), slog.LevelError)
+	log.SetOutput(l.Writer())
+	log.SetFlags(0)
 
 	conn, err := sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
