@@ -47,8 +47,8 @@ jobs:
         sudo mv migrate /usr/local/bin/
         which migrate
 
-    - name: Run migrations
-      run: doppler run -- migrate -path db/migration -database "$DB_SOURCE" -verbose up
+    - name: doppler run -- Run migrations
+      run: migrate -path db/migration -database "$DB_SOURCE" -verbose up
       env:
         DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
         DB_SOURCE: postgresql://root:123456@localhost:5432/simple_bank?sslmode=disable
